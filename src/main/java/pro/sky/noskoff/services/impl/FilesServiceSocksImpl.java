@@ -21,7 +21,7 @@ public class FilesServiceSocksImpl implements FilesServiceSocks {
     private String dataFileSocks;
 
     @Override
-    public boolean cleanDataFileRecipes() {
+    public boolean cleanDataFileSocks() {
         try {
             Path path = Path.of(dataFilePath, dataFileSocks);
             Files.deleteIfExists(path);
@@ -35,7 +35,7 @@ public class FilesServiceSocksImpl implements FilesServiceSocks {
     @Override
     public boolean saveToDataFileSocks(String json) {
         try {
-            cleanDataFileRecipes();
+            cleanDataFileSocks();
             Files.writeString(Path.of(dataFilePath, dataFileSocks), json);
             return true;
         } catch (IOException e) {
@@ -50,11 +50,11 @@ public class FilesServiceSocksImpl implements FilesServiceSocks {
 
     @Override
     public boolean uploadDataSocksFile(MultipartFile file) {
-        cleanDataFileRecipes();
-        File dataRecipeFile = getDataFileSocks();
+        cleanDataFileSocks();
+        File dataSocksFile = getDataFileSocks();
 
         try (
-                FileOutputStream fos = new FileOutputStream(dataRecipeFile)) {
+                FileOutputStream fos = new FileOutputStream(dataSocksFile)) {
             IOUtils.copy(file.getInputStream(), fos);
             return true;
         } catch (IOException e) {
