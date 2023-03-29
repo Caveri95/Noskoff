@@ -5,9 +5,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 
 public interface FilesServiceSocks {
-    boolean cleanDataFileSocks();
 
     boolean saveToDataFileSocks(String json);
+
+    String readFromDataFileSocks();
 
     File getDataFileSocks();
 

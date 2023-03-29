@@ -14,6 +14,7 @@ import java.nio.file.Path;
 
 @Service
 public class FilesServiceSocksImpl implements FilesServiceSocks {
+
     @Value("${path.to.data.file}")
     private String dataFilePath;
 
@@ -21,41 +22,48 @@ public class FilesServiceSocksImpl implements FilesServiceSocks {
     private String dataFileSocks;
 
     @Override
-    public boolean cleanDataFileSocks() {
+    public boolean saveToDataFileSocks(String json) {
+        try {
+            cleanDataFileSocks();
+            Files.writeString(Path.of(dataFilePath, dataFileSocks), json); // записываем нашу строку в файл
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+    @Override
+    public String readFromDataFileSocks() {
+        try {
+            return Files.readString(Path.of(dataFilePath, dataFileSocks)); // прочитать строку из файла
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private boolean cleanDataFileSocks() {
         try {
             Path path = Path.of(dataFilePath, dataFileSocks);
-            Files.deleteIfExists(path);
-            Files.createFile(path);
+            Files.deleteIfExists(path);  // удалить если существует
+            Files.createFile(path); // создаем новый пустой файл
             return true;
         } catch (IOException e) {
             e.printStackTrace();
             return false;
         }
     }
-    @Override
-    public boolean saveToDataFileSocks(String json) {
-        try {
-            cleanDataFileSocks();
-            Files.writeString(Path.of(dataFilePath, dataFileSocks), json);
-            return true;
-        } catch (IOException e) {
-            return false;
-        }
-    }
 
     @Override
     public File getDataFileSocks() {
-        return new File(dataFilePath + "/" + dataFileSocks);
+        return new File(dataFilePath + "/" + dataFileSocks);  // возвращаем файл (не сам файл, а его служебную информацию)
     }
 
     @Override
     public boolean uploadDataSocksFile(MultipartFile file) {
         cleanDataFileSocks();
         File dataSocksFile = getDataFileSocks();
-
         try (
                 FileOutputStream fos = new FileOutputStream(dataSocksFile)) {
-            IOUtils.copy(file.getInputStream(), fos);
+            IOUtils.copy(file.getInputStream(), fos);  // берем входящий поток из параметров запроса и копируем в выходящий поток
             return true;
         } catch (IOException e) {
             e.printStackTrace();

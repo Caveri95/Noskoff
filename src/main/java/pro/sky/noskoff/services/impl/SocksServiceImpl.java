@@ -1,6 +1,7 @@
 package pro.sky.noskoff.services.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import pro.sky.noskoff.model.Socks;
@@ -10,6 +11,7 @@ import pro.sky.noskoff.model.SocksSize;
 import pro.sky.noskoff.services.FilesServiceSocks;
 import pro.sky.noskoff.services.SocksService;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
 
 @Service
@@ -17,10 +19,15 @@ public class SocksServiceImpl implements SocksService {
     private final FilesServiceSocks filesServiceSocks;
 
     public static long SocksQuantity = 0L;
-    private static Map<Long, Socks> socksStock = new LinkedHashMap<>();
+    private static TreeMap<Long, Socks> socksStock = new TreeMap<>();
 
     public SocksServiceImpl(FilesServiceSocks filesServiceSocks) {
         this.filesServiceSocks = filesServiceSocks;
+    }
+
+    @PostConstruct
+    private void init() {
+        readFromFileSocks();
     }
 
     @Override
@@ -28,7 +35,7 @@ public class SocksServiceImpl implements SocksService {
         for (int i = 0; i < socks.getQuantity(); i++) {
             socksStock.putIfAbsent(SocksQuantity++, socks);
         }
-        saveToFileRecipes();
+        saveToFileSocks();
         return socks;
     }
 
@@ -55,7 +62,7 @@ public class SocksServiceImpl implements SocksService {
                 }
             }
         }
-        saveToFileRecipes();
+        saveToFileSocks();
         return true;
     }
 
@@ -86,12 +93,23 @@ public class SocksServiceImpl implements SocksService {
         return a;
     }
 
-    private void saveToFileRecipes() {
+    private void saveToFileSocks() {
         try {
-            String json = new ObjectMapper().writeValueAsString(socksStock);
+            String json = new ObjectMapper().writeValueAsString(socksStock); // переводим из мапы в json объект
             filesServiceSocks.saveToDataFileSocks(json);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void readFromFileSocks() {
+        String json = filesServiceSocks.readFromDataFileSocks(); // читаем из нашего файла все, что есть и получаем json строку
+        try {
+            socksStock = new ObjectMapper().readValue(json, new TypeReference<TreeMap<Long, Socks>>() {   // преобразуем строку в мапу
+            });
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 }
