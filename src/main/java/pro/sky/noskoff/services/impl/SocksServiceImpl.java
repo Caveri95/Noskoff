@@ -1,25 +1,34 @@
 package pro.sky.noskoff.services.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import pro.sky.noskoff.model.Socks;
 import pro.sky.noskoff.model.SocksColor;
 import pro.sky.noskoff.model.SocksCottonPart;
 import pro.sky.noskoff.model.SocksSize;
+import pro.sky.noskoff.services.FilesServiceSocks;
 import pro.sky.noskoff.services.SocksService;
 
 import java.util.*;
 
 @Service
 public class SocksServiceImpl implements SocksService {
+    private final FilesServiceSocks filesServiceSocks;
 
     public static long SocksQuantity = 0L;
     private static Map<Long, Socks> socksStock = new LinkedHashMap<>();
+
+    public SocksServiceImpl(FilesServiceSocks filesServiceSocks) {
+        this.filesServiceSocks = filesServiceSocks;
+    }
 
     @Override
     public Socks addSocks(Socks socks) {
         for (int i = 0; i < socks.getQuantity(); i++) {
             socksStock.putIfAbsent(SocksQuantity++, socks);
         }
+        saveToFileRecipes();
         return socks;
     }
 
@@ -46,6 +55,7 @@ public class SocksServiceImpl implements SocksService {
                 }
             }
         }
+        saveToFileRecipes();
         return true;
     }
 
@@ -74,5 +84,14 @@ public class SocksServiceImpl implements SocksService {
             }
         }
         return a;
+    }
+
+    private void saveToFileRecipes() {
+        try {
+            String json = new ObjectMapper().writeValueAsString(socksStock);
+            filesServiceSocks.saveToDataFileSocks(json);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
