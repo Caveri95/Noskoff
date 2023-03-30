@@ -24,13 +24,13 @@ public class SocksServiceImpl implements SocksService {
         this.filesServiceSocks = filesServiceSocks;
     }
 
-    @PostConstruct
+    /*@PostConstruct
     private void init() {
         File file = filesServiceSocks.getDataFileSocks();
         if (file.exists()) {
             readFromFileSocks();
         }
-    }
+    }*/
 
     @Override
     public Socks addSocks(Socks socks, long quantity) {
