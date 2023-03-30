@@ -12,14 +12,13 @@ import pro.sky.noskoff.services.FilesServiceSocks;
 import pro.sky.noskoff.services.SocksService;
 
 import javax.annotation.PostConstruct;
+import java.io.File;
 import java.util.*;
 
 @Service
 public class SocksServiceImpl implements SocksService {
     private final FilesServiceSocks filesServiceSocks;
-
-    public static long SocksQuantity = 0L;
-    private static TreeMap<Long, Socks> socksStock = new TreeMap<>();
+    private static Map<Socks, Long> socksStock = new HashMap<>();
 
     public SocksServiceImpl(FilesServiceSocks filesServiceSocks) {
         this.filesServiceSocks = filesServiceSocks;
@@ -27,70 +26,51 @@ public class SocksServiceImpl implements SocksService {
 
     @PostConstruct
     private void init() {
-        readFromFileSocks();
+        File file = filesServiceSocks.getDataFileSocks();
+        if (file.exists()) {
+            readFromFileSocks();
+        }
     }
 
     @Override
-    public Socks addSocks(Socks socks) {
-        for (int i = 0; i < socks.getQuantity(); i++) {
-            socksStock.putIfAbsent(SocksQuantity++, socks);
+    public Socks addSocks(Socks socks, long quantity) {
+        if (socksStock.containsKey(socks)) {
+            socksStock.computeIfPresent(socks, (socks1, aLong) -> aLong + quantity);
         }
+        socksStock.putIfAbsent(socks, quantity);
         saveToFileSocks();
         return socks;
     }
 
     @Override
-    public List<Socks> getAllSocks() {
-        return new ArrayList<>(socksStock.values());
+    public ArrayList<Map.Entry<Socks, Long>> getAllSocks() {
+        return new ArrayList<>(socksStock.entrySet());
+
     }
 
     @Override
-    public Boolean deleteSocks(SocksColor color, SocksSize size, SocksCottonPart cotton, int quantity) {
-        if (getCountSocks(color, size, cotton) < quantity) {
-            return false;
-        }
-        int a = 1;
-        Iterator<Map.Entry<Long, Socks>> i = socksStock.entrySet().iterator();
-        while (i.hasNext()) {
-            Map.Entry<Long, Socks> socks = i.next();
-            if (socks.getValue().getSocksColor() == color &&
-                    socks.getValue().getSocksSize() == size &&
-                    socks.getValue().getSocksCottonPart() == cotton) {
-                i.remove();
-                if (a++ == quantity) {
-                    break;
-                }
-            }
+    public Boolean deleteSocks(Socks socks, long quantity) {
+        if (socksStock.containsKey(socks) && socksStock.get(socks) >= quantity) {
+            socksStock.computeIfPresent(socks, (socks1, aLong) -> aLong - quantity);
+            return true;
         }
         saveToFileSocks();
-        return true;
+        return false;
     }
+
 
     @Override
     public String getCountSocksByParameters(SocksColor color, SocksSize size, SocksCottonPart cottonMin, SocksCottonPart cottonMax) {
-        int a = 0;
-        for (Map.Entry<Long, Socks> socks : socksStock.entrySet()) {
-            if (socks.getValue().getSocksColor() == color &&
-                    socks.getValue().getSocksSize() == size &&
-                    socks.getValue().getSocksCottonPart().getText() >= cottonMin.getText() &&
-                    socks.getValue().getSocksCottonPart().getText() <= cottonMax.getText()) {
-                a++;
-
+        long a = 0;
+        for (Map.Entry<Socks, Long> socks : socksStock.entrySet()) {
+            if (socks.getKey().getSocksColor() == color &&
+                    socks.getKey().getSocksSize() == size &&
+                    socks.getKey().getSocksCottonPart().getText() >= cottonMin.getText() &&
+                    socks.getKey().getSocksCottonPart().getText() <= cottonMax.getText()) {
+                a += socks.getValue();
             }
         }
-        return Integer.toString(a);
-    }
-
-    private int getCountSocks(SocksColor color, SocksSize size, SocksCottonPart cottonPart) {
-        int a = 0;
-        for (Map.Entry<Long, Socks> socks : socksStock.entrySet()) {
-            if (socks.getValue().getSocksColor() == color &&
-                    socks.getValue().getSocksSize() == size &&
-                    socks.getValue().getSocksCottonPart() == cottonPart) {
-                a++;
-            }
-        }
-        return a;
+        return Long.toString(a);
     }
 
     private void saveToFileSocks() {
@@ -105,8 +85,8 @@ public class SocksServiceImpl implements SocksService {
     private void readFromFileSocks() {
         String json = filesServiceSocks.readFromDataFileSocks(); // читаем из нашего файла все, что есть и получаем json строку
         try {
-            socksStock = new ObjectMapper().readValue(json, new TypeReference<TreeMap<Long, Socks>>() {   // преобразуем строку в мапу
-            });
+            socksStock = new ObjectMapper().readValue(json, new TypeReference<HashMap<Socks, Long>>() {
+            });// преобразуем строку в мапу
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

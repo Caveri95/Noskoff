@@ -5,15 +5,15 @@ import pro.sky.noskoff.model.SocksColor;
 import pro.sky.noskoff.model.SocksCottonPart;
 import pro.sky.noskoff.model.SocksSize;
 
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
 
 public interface SocksService {
-    Socks addSocks(Socks socks);
+    Socks addSocks(Socks socks, long quantity);
 
-    List<Socks> getAllSocks();
+    ArrayList<Map.Entry<Socks, Long>> getAllSocks();
 
-
-    Boolean deleteSocks(SocksColor color, SocksSize size, SocksCottonPart cotton, int quantity);
+    Boolean deleteSocks(Socks socks, long quantity);
 
     String getCountSocksByParameters(SocksColor color, SocksSize size, SocksCottonPart cottonMin, SocksCottonPart cottonMax);
 }
