@@ -14,6 +14,7 @@ import pro.sky.noskoff.services.SocksService;
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class SocksServiceImpl implements SocksService {
@@ -24,13 +25,13 @@ public class SocksServiceImpl implements SocksService {
         this.filesServiceSocks = filesServiceSocks;
     }
 
-    /*@PostConstruct
+    @PostConstruct
     private void init() {
         File file = filesServiceSocks.getDataFileSocks();
         if (file.exists()) {
             readFromFileSocks();
         }
-    }*/
+    }
 
     @Override
     public Socks addSocks(Socks socks, long quantity) {
@@ -75,7 +76,8 @@ public class SocksServiceImpl implements SocksService {
 
     private void saveToFileSocks() {
         try {
-            String json = new ObjectMapper().writeValueAsString(socksStock); // переводим из мапы в json объект
+            Map<Long, Socks> socksStockReverse = socksStock.entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+            String json = new ObjectMapper().writeValueAsString(socksStockReverse); // переводим из мапы в json объект
             filesServiceSocks.saveToDataFileSocks(json);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
@@ -85,8 +87,9 @@ public class SocksServiceImpl implements SocksService {
     private void readFromFileSocks() {
         String json = filesServiceSocks.readFromDataFileSocks(); // читаем из нашего файла все, что есть и получаем json строку
         try {
-            socksStock = new ObjectMapper().readValue(json, new TypeReference<HashMap<Socks, Long>>() {
+            HashMap<Long, Socks> socksStockReverse = new ObjectMapper().readValue(json, new TypeReference<HashMap<Long, Socks>>() {
             });// преобразуем строку в мапу
+            socksStock = socksStockReverse.entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
