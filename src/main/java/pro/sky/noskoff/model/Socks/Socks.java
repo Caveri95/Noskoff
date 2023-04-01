@@ -1,4 +1,4 @@
-package pro.sky.noskoff.model;
+package pro.sky.noskoff.model.Socks;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

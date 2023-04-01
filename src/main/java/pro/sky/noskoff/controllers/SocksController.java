@@ -9,10 +9,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pro.sky.noskoff.model.Socks;
-import pro.sky.noskoff.model.SocksColor;
-import pro.sky.noskoff.model.SocksCottonPart;
-import pro.sky.noskoff.model.SocksSize;
+import pro.sky.noskoff.model.Socks.Socks;
+import pro.sky.noskoff.model.Socks.SocksColor;
+import pro.sky.noskoff.model.Socks.SocksCottonPart;
+import pro.sky.noskoff.model.Socks.SocksSize;
+import pro.sky.noskoff.model.SocksDTO.SocksDTO;
 import pro.sky.noskoff.services.SocksService;
 
 import java.util.ArrayList;
@@ -36,11 +37,11 @@ public class SocksController {
             @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = Socks.class)))
     })
     public ResponseEntity<Socks> addSocks(@RequestParam SocksColor color, @RequestParam SocksCottonPart cotton, @RequestParam SocksSize size, @RequestParam int quantity) {
-        Socks createSocks = socksService.addSocks(new Socks(color, cotton, size), quantity);
+        Socks createSocks = socksService.addSocks(new SocksDTO(color, cotton, size, quantity));
         return ResponseEntity.ok(createSocks);
     }
 
-    /*@PutMapping
+    @PutMapping
     @Operation(summary = "Отпустить партию носков со склада", description = "Необходимо указать цвет, процентное содержание хлопка, размер, а также количество пар носков")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Партия отпущена"),
@@ -49,11 +50,11 @@ public class SocksController {
 
     })
     public ResponseEntity<Void> putSocks(@RequestParam SocksColor color, @RequestParam SocksCottonPart cotton, @RequestParam SocksSize size, @RequestParam int quantity) {
-        if (socksService.deleteSocks(color, size, cotton, quantity)) {
+        if (socksService.deleteSocks(new SocksDTO(color, cotton, size, quantity))) {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.notFound().build();
-    }*/
+    }
 
     @GetMapping("/getAll")
     @Operation(summary = "Получить все имеющиеся на складе носки")
@@ -78,7 +79,7 @@ public class SocksController {
 
     })
     public ResponseEntity<Void> deleteSocks(@RequestParam SocksColor color, @RequestParam SocksCottonPart cotton, @RequestParam SocksSize size, @RequestParam int quantity) {
-        if (socksService.deleteSocks(new Socks(color, cotton, size), quantity)) {
+        if (socksService.deleteSocks(new SocksDTO(color, cotton, size, quantity))) {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.badRequest().build();

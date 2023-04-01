@@ -1,9 +1,11 @@
 package pro.sky.noskoff.services.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import pro.sky.noskoff.model.SocksDTO.SocksDTO;
 import pro.sky.noskoff.services.FilesServiceSocks;
 
 import java.io.File;
@@ -11,6 +13,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 @Service
 public class FilesServiceSocksImpl implements FilesServiceSocks {
@@ -22,15 +25,34 @@ public class FilesServiceSocksImpl implements FilesServiceSocks {
     private String dataFileSocks;
 
     @Override
-    public boolean saveToDataFileSocks(String json) {
+    public boolean saveToDataFileSocks(List<SocksDTO> socksDTOS) {
         try {
             cleanDataFileSocks();
-            Files.writeString(Path.of(dataFilePath, dataFileSocks), json); // записываем нашу строку в файл
+            ObjectMapper objectMapper = new ObjectMapper();
+            Files.write(Path.of(dataFilePath, dataFileSocks), objectMapper.writeValueAsBytes(socksDTOS)); // записываем нашу строку в файл
             return true;
         } catch (IOException e) {
             return false;
         }
     }
+
+    @Override
+    public boolean uploadDataSocksFile(MultipartFile file) {
+
+        cleanDataFileSocks();
+        File dataSocksFile = getDataFileSocks();
+
+        try (
+
+                FileOutputStream fos = new FileOutputStream(dataSocksFile)) {
+            IOUtils.copy(file.getInputStream(), fos);
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     @Override
     public String readFromDataFileSocks() {
         try {
@@ -40,34 +62,18 @@ public class FilesServiceSocksImpl implements FilesServiceSocks {
         }
     }
 
-    private boolean cleanDataFileSocks() {
+    private void cleanDataFileSocks() {
         try {
             Path path = Path.of(dataFilePath, dataFileSocks);
             Files.deleteIfExists(path);  // удалить если существует
             Files.createFile(path); // создаем новый пустой файл
-            return true;
         } catch (IOException e) {
             e.printStackTrace();
-            return false;
         }
     }
 
     @Override
     public File getDataFileSocks() {
         return new File(dataFilePath + "/" + dataFileSocks);  // возвращаем файл (не сам файл, а его служебную информацию)
-    }
-
-    @Override
-    public boolean uploadDataSocksFile(MultipartFile file) {
-        cleanDataFileSocks();
-        File dataSocksFile = getDataFileSocks();
-        try (
-                FileOutputStream fos = new FileOutputStream(dataSocksFile)) {
-            IOUtils.copy(file.getInputStream(), fos);  // берем входящий поток из параметров запроса и копируем в выходящий поток
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return false;
     }
 }

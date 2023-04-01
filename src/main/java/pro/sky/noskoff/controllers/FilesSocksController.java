@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import pro.sky.noskoff.services.FilesServiceSocks;
+import pro.sky.noskoff.services.SocksService;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,7 +20,7 @@ import java.io.FileNotFoundException;
 @RequestMapping("/socksFiles")
 @Tag(name = "Работа с файлами", description = "скачать файл со всеми носками или загрузить свой")
 public class FilesSocksController {
-    private FilesServiceSocks filesServiceSocks;
+    private final FilesServiceSocks filesServiceSocks;
 
     public FilesSocksController(FilesServiceSocks filesServiceSocks) {
         this.filesServiceSocks = filesServiceSocks;

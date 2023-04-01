@@ -1,19 +1,22 @@
 package pro.sky.noskoff.services;
 
-import pro.sky.noskoff.model.Socks;
-import pro.sky.noskoff.model.SocksColor;
-import pro.sky.noskoff.model.SocksCottonPart;
-import pro.sky.noskoff.model.SocksSize;
+import org.springframework.web.multipart.MultipartFile;
+import pro.sky.noskoff.model.Socks.Socks;
+import pro.sky.noskoff.model.Socks.SocksColor;
+import pro.sky.noskoff.model.Socks.SocksCottonPart;
+import pro.sky.noskoff.model.Socks.SocksSize;
+import pro.sky.noskoff.model.SocksDTO.SocksDTO;
 
 import java.util.ArrayList;
 import java.util.Map;
 
 public interface SocksService {
-    Socks addSocks(Socks socks, long quantity);
+    Socks addSocks(SocksDTO socksDTO);
 
     ArrayList<Map.Entry<Socks, Long>> getAllSocks();
 
-    Boolean deleteSocks(Socks socks, long quantity);
+    Boolean deleteSocks(SocksDTO socksDTO);
 
     String getCountSocksByParameters(SocksColor color, SocksSize size, SocksCottonPart cottonMin, SocksCottonPart cottonMax);
+
 }
