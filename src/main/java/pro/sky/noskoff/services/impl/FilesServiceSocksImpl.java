@@ -38,10 +38,8 @@ public class FilesServiceSocksImpl implements FilesServiceSocks {
 
     @Override
     public boolean uploadDataSocksFile(MultipartFile file) {
-
         cleanDataFileSocks();
         File dataSocksFile = getDataFileSocks();
-
         try (
 
                 FileOutputStream fos = new FileOutputStream(dataSocksFile)) {

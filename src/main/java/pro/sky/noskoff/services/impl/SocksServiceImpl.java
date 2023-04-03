@@ -3,6 +3,7 @@ package pro.sky.noskoff.services.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
+import pro.sky.noskoff.exception.InvalidSocksRequestException;
 import pro.sky.noskoff.model.Socks.Socks;
 import pro.sky.noskoff.model.Socks.SocksColor;
 import pro.sky.noskoff.model.Socks.SocksCottonPart;
@@ -35,6 +36,7 @@ public class SocksServiceImpl implements SocksService {
 
     @Override
     public Socks addSocks(SocksDTO socksDTO) {
+        validateRequests(socksDTO);
         Socks socks = mapToSock(socksDTO);
         if (socksStock.containsKey(socks)) {
             socksStock.computeIfPresent(socks, (socks1, aLong) -> aLong + socksDTO.getQuantity());
@@ -51,28 +53,29 @@ public class SocksServiceImpl implements SocksService {
 
     @Override
     public Boolean deleteSocks(SocksDTO socksDTO) {
+        validateRequests(socksDTO);
         Socks socks = mapToSock(socksDTO);
         if (socksStock.containsKey(socks) && socksStock.get(socks) >= socksDTO.getQuantity()) {
             socksStock.computeIfPresent(socks, (socks1, aLong) -> aLong - socksDTO.getQuantity());
+            saveToFileSocks();
             return true;
         }
-        saveToFileSocks();
         return false;
     }
 
 
     @Override
     public String getCountSocksByParameters(SocksColor color, SocksSize size, SocksCottonPart cottonMin, SocksCottonPart cottonMax) {
-        long a = 0;
+        long total = 0;
         for (Map.Entry<Socks, Long> socks : socksStock.entrySet()) {
             if (socks.getKey().getSocksColor() == color &&
                     socks.getKey().getSocksSize() == size &&
                     socks.getKey().getSocksCottonPart().getText() >= cottonMin.getText() &&
                     socks.getKey().getSocksCottonPart().getText() <= cottonMax.getText()) {
-                a += socks.getValue();
+                total += socks.getValue();
             }
         }
-        return Long.toString(a);
+        return Long.toString(total);
     }
 
     private void saveToFileSocks() {
@@ -82,6 +85,7 @@ public class SocksServiceImpl implements SocksService {
         }
         filesServiceSocks.saveToDataFileSocks(socksList);
     }
+
 
     private void readFromFileSocks() {
         try {
@@ -106,5 +110,14 @@ public class SocksServiceImpl implements SocksService {
         socksDTO.setSocksCottonPart(socks.getSocksCottonPart());
         socksDTO.setQuantity(quantity);
         return socksDTO;
+    }
+
+    private void validateRequests(SocksDTO socksDTO) {
+        if (socksDTO.getSocksColor() == null || socksDTO.getSocksSize() == null) {
+            throw new InvalidSocksRequestException("Все поля должны быть заполнены");
+        }
+        if (socksDTO.getQuantity() <= 0) {
+            throw new InvalidSocksRequestException("Число пар носков не может быть отрицательным");
+        }
     }
 }

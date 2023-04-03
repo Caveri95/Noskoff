@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import pro.sky.noskoff.services.FilesServiceSocks;
-import pro.sky.noskoff.services.SocksService;
 
 import java.io.File;
 import java.io.FileInputStream;

@@ -1,6 +1,5 @@
 package pro.sky.noskoff.services;
 
-import org.springframework.web.multipart.MultipartFile;
 import pro.sky.noskoff.model.Socks.Socks;
 import pro.sky.noskoff.model.Socks.SocksColor;
 import pro.sky.noskoff.model.Socks.SocksCottonPart;
